@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.routes.js";
 import pollRoutes from "./routes/poll.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { registerSocket } from "./socket/socketHandler.js";
+import { ResponseModel } from "./models/Response.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -46,7 +47,9 @@ if (!MONGO_URI) {
   throw new Error("MONGO_URI is required");
 }
 
-void connectDB(MONGO_URI).then(() => {
+void connectDB(MONGO_URI).then(async () => {
+  await ResponseModel.syncIndexes();
+
   server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

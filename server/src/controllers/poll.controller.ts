@@ -57,13 +57,40 @@ export const getPublicPoll = async (req: Request, res: Response) => {
   if (!poll) throw ApiError.notFound("Poll not found");
 
   const isExpired = new Date() > poll.expiresAt;
+  const isCreator = req.auth?.sub === poll.createdBy;
+  const showResults = poll.isPublished || (isExpired && isCreator);
 
-  if (poll.isPublished) {
-    const analytics = await buildPollAnalytics(poll._id as Types.ObjectId);
-    return ApiResponse.ok(res, "Published poll", { poll, analytics, isExpired });
+  const sessionId = typeof req.query.sessionId === "string" ? req.query.sessionId : undefined;
+  let existingResponse: { answers: Array<{ questionId: string; optionIndex: number }> } | null = null;
+
+  if (req.auth?.sub) {
+    const response = await ResponseModel.findOne({ poll: poll._id, responderSub: req.auth.sub }).lean();
+    if (response) {
+      existingResponse = {
+        answers: response.answers.map((a) => ({ questionId: a.questionId.toString(), optionIndex: a.optionIndex })),
+      };
+    }
+  } else if (sessionId) {
+    const response = await ResponseModel.findOne({ poll: poll._id, anonymousSessionId: sessionId }).lean();
+    if (response) {
+      existingResponse = {
+        answers: response.answers.map((a) => ({ questionId: a.questionId.toString(), optionIndex: a.optionIndex })),
+      };
+    }
   }
 
-  return ApiResponse.ok(res, "Poll details", { poll, isExpired });
+  if (showResults) {
+    const analytics = await buildPollAnalytics(poll._id as Types.ObjectId);
+    return ApiResponse.ok(res, poll.isPublished ? "Published poll" : "Creator expired view", {
+      poll,
+      analytics,
+      isExpired,
+      showResults,
+      existingResponse,
+    });
+  }
+
+  return ApiResponse.ok(res, "Poll details", { poll, isExpired, showResults: false, existingResponse });
 };
 
 export const submitPollResponse = async (req: Request, res: Response) => {
@@ -76,6 +103,10 @@ export const submitPollResponse = async (req: Request, res: Response) => {
 
   if (poll.responseMode === "authenticated" && !req.auth?.sub) {
     throw ApiError.unauthorized("Login required to respond to this poll");
+  }
+
+  if (poll.responseMode === "anonymous" && req.auth?.sub) {
+    req.auth = undefined;
   }
 
   const answersByQuestion = new Map(parsed.data.answers.map((a) => [a.questionId, a.optionIndex]));
@@ -91,16 +122,14 @@ export const submitPollResponse = async (req: Request, res: Response) => {
   }
 
   const isAnonymous = !req.auth?.sub;
-  const uniqueFilter = isAnonymous
-    ? { poll: poll._id, anonymousSessionId: parsed.data.anonymousSessionId }
-    : { poll: poll._id, responderSub: req.auth.sub };
 
-  if (isAnonymous && !parsed.data.anonymousSessionId) {
-    throw ApiError.badRequest("anonymousSessionId is required for anonymous responses");
+  if (!isAnonymous) {
+    const existingAuth = await ResponseModel.findOne({ poll: poll._id, responderSub: req.auth!.sub });
+    if (existingAuth) throw ApiError.conflict("You have already responded to this poll");
+  } else if (parsed.data.anonymousSessionId) {
+    const existingAnon = await ResponseModel.findOne({ poll: poll._id, anonymousSessionId: parsed.data.anonymousSessionId });
+    if (existingAnon) throw ApiError.conflict("You have already responded to this poll from this browser/session");
   }
-
-  const existing = await ResponseModel.findOne(uniqueFilter);
-  if (existing) throw ApiError.conflict("You have already responded to this poll");
 
   const answers = parsed.data.answers.map((a) => ({ questionId: new Types.ObjectId(a.questionId), optionIndex: a.optionIndex }));
 
