@@ -63,7 +63,7 @@ router.get(
         name: typeof payload.name === "string" ? payload.name : "",
         picture: typeof payload.picture === "string" ? payload.picture : "",
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
 
     return ApiResponse.ok(res, "Current user", {
@@ -76,3 +76,4 @@ router.get(
 );
 
 export default router;
+
