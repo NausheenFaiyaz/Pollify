@@ -6,15 +6,15 @@ export default function Navbar() {
 
   return (
     <header className="topbar">
-      <Link to="/" className="brand">PulseBoard</Link>
-      <nav>
-        <NavLink to="/dashboard">Dashboard</NavLink>
-        <NavLink to="/poll/create">Create Poll</NavLink>
+      <Link to="/" className="brand">PollShinobi</Link>
+      <nav className="topnav">
+        <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "active" : "")}>Dashboard</NavLink>
+        <NavLink to="/poll/create" className={({ isActive }) => (isActive ? "active" : "")}>Create Poll</NavLink>
       </nav>
       {token ? (
-        <button onClick={() => { clearToken(); window.location.href = "/"; }}>Logout</button>
+        <button className="btn btn-outline" onClick={() => { clearToken(); window.location.href = "/"; }}>Logout</button>
       ) : (
-        <button onClick={startOidcLogin}>Login</button>
+        <button className="btn" onClick={() => void startOidcLogin()}>Login</button>
       )}
     </header>
   );

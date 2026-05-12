@@ -1,5 +1,6 @@
 const PKCE_VERIFIER_KEY = "ps_pkce_verifier";
 const PKCE_STATE_KEY = "ps_pkce_state";
+const POST_LOGIN_PATH_KEY = "ps_post_login_path";
 
 export const getToken = () => localStorage.getItem("ps_token");
 export const setToken = (token: string) => localStorage.setItem("ps_token", token);
@@ -26,13 +27,14 @@ const createCodeChallenge = async (verifier: string) => {
   return base64Url(digest);
 };
 
-export const startOidcLogin = async () => {
+export const startOidcLogin = async (returnTo = "/dashboard") => {
   const codeVerifier = randomString(64);
   const codeChallenge = await createCodeChallenge(codeVerifier);
   const state = crypto.randomUUID();
 
   localStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
   localStorage.setItem(PKCE_STATE_KEY, state);
+  localStorage.setItem(POST_LOGIN_PATH_KEY, returnTo);
 
   const authUrl = new URL(`${issuer.replace(/\/$/, "")}/user/login`);
   authUrl.searchParams.set("client_id", clientId);
@@ -47,7 +49,9 @@ export const startOidcLogin = async () => {
 export const consumePkceData = () => {
   const verifier = localStorage.getItem(PKCE_VERIFIER_KEY);
   const state = localStorage.getItem(PKCE_STATE_KEY);
+  const returnTo = localStorage.getItem(POST_LOGIN_PATH_KEY) ?? "/dashboard";
   localStorage.removeItem(PKCE_VERIFIER_KEY);
   localStorage.removeItem(PKCE_STATE_KEY);
-  return { verifier, state };
+  localStorage.removeItem(POST_LOGIN_PATH_KEY);
+  return { verifier, state, returnTo };
 };
