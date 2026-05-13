@@ -11,11 +11,21 @@ import { getSubmissionToken } from "../lib/submissionToken";
 import type { Poll } from "../types/poll";
 
 type Analytics = {
-  participation: { totalResponses: number; anonymousResponses: number; authenticatedResponses: number };
-  questionSummary: Array<{ questionId: string; prompt: string; options: Array<{ label: string; count: number }> }>;
+  participation: {
+    totalResponses: number;
+    anonymousResponses: number;
+    authenticatedResponses: number;
+  };
+  questionSummary: Array<{
+    questionId: string;
+    prompt: string;
+    options: Array<{ label: string; count: number }>;
+  }>;
 };
 const resultPalette = ["var(--pink)", "var(--mint)", "var(--sky)"];
-const socket = io(import.meta.env.VITE_SOCKET_URL as string, { autoConnect: false });
+const socket = io(import.meta.env.VITE_SOCKET_URL as string, {
+  autoConnect: false,
+});
 
 type PublicPollPayload = {
   poll: Poll;
@@ -42,18 +52,26 @@ export default function PublicPollPage() {
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const sessionId = useMemo(() => (slug ? getSubmissionToken(slug) : ""), [slug]);
+  const sessionId = useMemo(
+    () => (slug ? getSubmissionToken(slug) : ""),
+    [slug],
+  );
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/polls/public/${slug}`, { params: { sessionId } });
+        const res = await api.get(`/polls/public/${slug}`, {
+          params: { sessionId },
+        });
         const nextPayload = res.data.data as PublicPollPayload;
         setPayload(nextPayload);
         if (nextPayload.existingResponse?.answers?.length) {
           const restored = Object.fromEntries(
-            nextPayload.existingResponse.answers.map((a) => [a.questionId, a.optionIndex])
+            nextPayload.existingResponse.answers.map((a) => [
+              a.questionId,
+              a.optionIndex,
+            ]),
           ) as Record<string, number>;
           setAnswers(restored);
           setAlreadySubmitted(true);
@@ -71,37 +89,54 @@ export default function PublicPollPage() {
   useEffect(() => {
     if (!payload?.poll?.expiresAt || payload.isExpired) return;
 
-    const msUntilExpiry = new Date(payload.poll.expiresAt).getTime() - Date.now();
+    const msUntilExpiry =
+      new Date(payload.poll.expiresAt).getTime() - Date.now();
     if (msUntilExpiry <= 0) {
-      setPayload((prev) => (prev ? { ...prev, isExpired: true, showResults: prev.poll.isPublished } : prev));
+      setPayload((prev) =>
+        prev
+          ? { ...prev, isExpired: true, showResults: prev.poll.isPublished }
+          : prev,
+      );
       return;
     }
 
     const timer = window.setTimeout(() => {
-      setPayload((prev) => (prev ? { ...prev, isExpired: true, showResults: prev.poll.isPublished } : prev));
+      setPayload((prev) =>
+        prev
+          ? { ...prev, isExpired: true, showResults: prev.poll.isPublished }
+          : prev,
+      );
     }, msUntilExpiry);
 
     return () => window.clearTimeout(timer);
-  }, [payload?.isExpired, payload?.poll?.expiresAt, payload?.poll?.isPublished]);
+  }, [
+    payload?.isExpired,
+    payload?.poll?.expiresAt,
+    payload?.poll?.isPublished,
+  ]);
 
   useEffect(() => {
     if (!slug) return;
 
     socket.connect();
     socket.emit("poll:join", slug);
-    socket.on("analytics:update", (nextAnalytics: Analytics & { poll?: { isPublished?: boolean } }) => {
-      setPayload((prev) => {
-        if (!prev) return prev;
+    socket.on(
+      "analytics:update",
+      (nextAnalytics: Analytics & { poll?: { isPublished?: boolean } }) => {
+        setPayload((prev) => {
+          if (!prev) return prev;
 
-        const nextPublished = nextAnalytics?.poll?.isPublished ?? prev.poll.isPublished;
-        return {
-          ...prev,
-          poll: { ...prev.poll, isPublished: nextPublished },
-          analytics: nextAnalytics,
-          showResults: nextPublished ? true : prev.showResults,
-        };
-      });
-    });
+          const nextPublished =
+            nextAnalytics?.poll?.isPublished ?? prev.poll.isPublished;
+          return {
+            ...prev,
+            poll: { ...prev.poll, isPublished: nextPublished },
+            analytics: nextAnalytics,
+            showResults: nextPublished ? true : prev.showResults,
+          };
+        });
+      },
+    );
 
     return () => {
       socket.emit("poll:leave", slug);
@@ -134,7 +169,10 @@ export default function PublicPollPage() {
 
       await api.post(`/polls/public/${payload.poll.slug}/respond`, {
         anonymousSessionId: sessionId,
-        answers: Object.entries(answers).map(([questionId, optionIndex]) => ({ questionId, optionIndex })),
+        answers: Object.entries(answers).map(([questionId, optionIndex]) => ({
+          questionId,
+          optionIndex,
+        })),
       });
 
       setAlreadySubmitted(true);
@@ -153,30 +191,48 @@ export default function PublicPollPage() {
   const needsAuth = poll.responseMode === "authenticated" && !getToken();
   const activeQuestion = poll.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === poll.questions.length - 1;
-  const canGoNext = activeQuestion ? answers[activeQuestion._id] !== undefined || !activeQuestion.required : false;
+  const canGoNext = activeQuestion
+    ? answers[activeQuestion._id] !== undefined || !activeQuestion.required
+    : false;
   const canSubmit = alreadySubmitted || !validateRequiredAnswers();
 
   return (
     <section className="stack createPollPage">
-      <h2>{poll.title}</h2>
-      <p className="muted">{poll.description || "No description"}</p>
-
+      <div className="poll-head">
+        <h2>{poll.title}</h2>
+        <p className="muted">{poll.description || "No description"}</p>
+      </div>
       <PollStatusPanel poll={poll} isExpired={isExpired} />
-      {needsAuth ? <AuthRequiredPanel onLogin={() => void startOidcLogin(window.location.pathname + window.location.search)} /> : null}
+      {needsAuth ? (
+        <AuthRequiredPanel
+          onLogin={() =>
+            void startOidcLogin(
+              window.location.pathname + window.location.search,
+            )
+          }
+        />
+      ) : null}
 
       {showResults && analytics ? (
         <section className="pollSection">
           <h3>Final Results</h3>
-          <p className="muted">Total responses: {analytics.participation.totalResponses}</p>
+          <p className="muted">
+            Total responses: {analytics.participation.totalResponses}
+          </p>
           {analytics.questionSummary.map((q, qIndex) => {
-            const total = q.options.reduce((sum, opt) => sum + opt.count, 0) || 1;
+            const total =
+              q.options.reduce((sum, opt) => sum + opt.count, 0) || 1;
             return (
               <article key={q.questionId} className="pollSection">
-                <h4>Q{qIndex + 1}. {q.prompt}</h4>
+                <h4>
+                  Q{qIndex + 1}. {q.prompt}
+                </h4>
                 {q.options.map((opt, idx) => (
                   <div className="resultRow" key={opt.label}>
                     <div className="resultLabel resultLabelWithBadge">
-                      <span className="optionBadge">{String.fromCharCode(65 + idx)}</span>
+                      <span className="optionBadge">
+                        {String.fromCharCode(65 + idx)}
+                      </span>
                       <span>{opt.label}</span>
                     </div>
                     <div className="resultBarWrap">
@@ -188,7 +244,9 @@ export default function PublicPollPage() {
                         }}
                       />
                     </div>
-                    <div className="resultMeta">{opt.count} ({Math.round((opt.count / total) * 100)}%)</div>
+                    <div className="resultMeta">
+                      {opt.count} ({Math.round((opt.count / total) * 100)}%)
+                    </div>
                   </div>
                 ))}
               </article>
@@ -200,25 +258,43 @@ export default function PublicPollPage() {
       {!needsAuth && !isExpired && !showResults && activeQuestion ? (
         <article key={activeQuestion._id} className="card quizCard">
           <h4>
-            Q{currentQuestionIndex + 1}. {activeQuestion.prompt} {activeQuestion.required ? "*" : "(Optional)"}
+            Q{currentQuestionIndex + 1}. {activeQuestion.prompt}{" "}
+            {activeQuestion.required ? "*" : "(Optional)"}
           </h4>
           <div className="quizOptions">
-          {activeQuestion.options.map((o, index) => (
-            <label key={`${activeQuestion._id}-${index}`} className={`optionRow quizOption ${answers[activeQuestion._id] === index ? "selected" : ""}`}>
-              <span className="optionBadge">{String.fromCharCode(65 + index)}</span>
-              <input
-                type="radio"
-                name={activeQuestion._id}
-                checked={answers[activeQuestion._id] === index}
-                disabled={alreadySubmitted}
-                onChange={() => setAnswers((prev) => ({ ...prev, [activeQuestion._id]: index }))}
-              />
-              <span>{o.label}</span>
-            </label>
-          ))}
+            {activeQuestion.options.map((o, index) => (
+              <label
+                key={`${activeQuestion._id}-${index}`}
+                className={`optionRow quizOption ${answers[activeQuestion._id] === index ? "selected" : ""}`}
+              >
+                <span className="optionBadge">
+                  {String.fromCharCode(65 + index)}
+                </span>
+                <input
+                  type="radio"
+                  name={activeQuestion._id}
+                  checked={answers[activeQuestion._id] === index}
+                  disabled={alreadySubmitted}
+                  onChange={() =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [activeQuestion._id]: index,
+                    }))
+                  }
+                />
+                <span>{o.label}</span>
+              </label>
+            ))}
           </div>
           <div className="actions">
-            <button type="button" className="ghost" disabled={currentQuestionIndex === 0} onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}>
+            <button
+              type="button"
+              className="ghost"
+              disabled={currentQuestionIndex === 0}
+              onClick={() =>
+                setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
+              }
+            >
               Back
             </button>
             {!isLastQuestion ? (
@@ -226,13 +302,25 @@ export default function PublicPollPage() {
                 type="button"
                 className="btn"
                 disabled={!canGoNext || alreadySubmitted}
-                onClick={() => setCurrentQuestionIndex((prev) => Math.min(poll.questions.length - 1, prev + 1))}
+                onClick={() =>
+                  setCurrentQuestionIndex((prev) =>
+                    Math.min(poll.questions.length - 1, prev + 1),
+                  )
+                }
               >
                 Next
               </button>
             ) : (
-              <button type="button" disabled={submitting || !canSubmit || alreadySubmitted} onClick={submit}>
-                {submitting ? "Submitting..." : alreadySubmitted ? "Submitted" : "Submit Response"}
+              <button
+                type="button"
+                disabled={submitting || !canSubmit || alreadySubmitted}
+                onClick={submit}
+              >
+                {submitting
+                  ? "Submitting..."
+                  : alreadySubmitted
+                    ? "Submitted"
+                    : "Submit Response"}
               </button>
             )}
           </div>

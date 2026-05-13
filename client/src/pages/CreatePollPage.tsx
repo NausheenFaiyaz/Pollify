@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaPlus } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 import {
   useFieldArray,
   useForm,
@@ -62,7 +63,7 @@ function QuestionBlock({
           className="danger ghost"
           onClick={() => removeQuestion(index)}
         >
-          Remove
+          <MdDelete />
         </button>
       </div>
 
@@ -89,7 +90,7 @@ function QuestionBlock({
                 className="danger ghost"
                 onClick={() => options.remove(optionIndex)}
               >
-                Remove
+                <MdDelete />
               </button>
             )}
           </div>
@@ -160,10 +161,12 @@ export default function CreatePollPage() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="stack createPollPage">
-      <h2 className="createTitle">Create a Poll</h2>
-      <p className="muted">
-        Set up your poll, add questions, and start collecting responses.
-      </p>
+      <div className="poll-head">
+        <h2 className="createTitle">Create a Poll</h2>
+        <p className="muted">
+          Set up your poll, add questions, and start collecting responses.
+        </p>
+      </div>
       {error && <p className="error">{error}</p>}
 
       <section className="pollSection">

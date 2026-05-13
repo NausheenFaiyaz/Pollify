@@ -13,7 +13,7 @@ export default function HomePage() {
             <p className="kicker">Realtime Poll Mission Control</p>
             <h1 className="mega">Ask Smart. Collect Fast. Publish When Ready.</h1>
             <p className="lead">
-              PollShinobi helps teams, creators, and communities launch clean polls, gather real responses, and turn
+              Pollify helps teams, creators, and communities launch clean polls, gather real responses, and turn
               choices into clear insights.
             </p>
             <p className="muted landingIntro">
@@ -82,7 +82,7 @@ export default function HomePage() {
       </section>
 
       <section className="pollSection landingSection">
-        <h3>How PollShinobi Works</h3>
+        <h3>How Pollify Works</h3>
         <div className="grid landingFlow">
           <article className="card featureCard sky">
             <p className="kicker">Step 1</p>
