@@ -16,7 +16,7 @@ export default function Navbar() {
 
   return (
     <header className="topbar">
-      <Link to="/" className="brand">PollShinobi</Link>
+      <Link to="/" className="brand">Pollify</Link>
       <nav className="topnav">
         <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "active" : "")}>Dashboard</NavLink>
         <NavLink to="/poll/create" className={({ isActive }) => (isActive ? "active" : "")}>Create Poll</NavLink>
