@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import { io } from "socket.io-client";
 import api from "../api/client";
 import { getToken, startOidcLogin } from "../auth/oidc";
 import AuthRequiredPanel from "../components/public-poll/AuthRequiredPanel";
@@ -14,6 +15,7 @@ type Analytics = {
   questionSummary: Array<{ questionId: string; prompt: string; options: Array<{ label: string; count: number }> }>;
 };
 const resultPalette = ["var(--pink)", "var(--mint)", "var(--sky)"];
+const socket = io(import.meta.env.VITE_SOCKET_URL as string, { autoConnect: false });
 
 type PublicPollPayload = {
   poll: Poll;
@@ -65,6 +67,48 @@ export default function PublicPollPage() {
 
     void load();
   }, [sessionId, slug]);
+
+  useEffect(() => {
+    if (!payload?.poll?.expiresAt || payload.isExpired) return;
+
+    const msUntilExpiry = new Date(payload.poll.expiresAt).getTime() - Date.now();
+    if (msUntilExpiry <= 0) {
+      setPayload((prev) => (prev ? { ...prev, isExpired: true, showResults: prev.poll.isPublished } : prev));
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setPayload((prev) => (prev ? { ...prev, isExpired: true, showResults: prev.poll.isPublished } : prev));
+    }, msUntilExpiry);
+
+    return () => window.clearTimeout(timer);
+  }, [payload?.isExpired, payload?.poll?.expiresAt, payload?.poll?.isPublished]);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    socket.connect();
+    socket.emit("poll:join", slug);
+    socket.on("analytics:update", (nextAnalytics: Analytics & { poll?: { isPublished?: boolean } }) => {
+      setPayload((prev) => {
+        if (!prev) return prev;
+
+        const nextPublished = nextAnalytics?.poll?.isPublished ?? prev.poll.isPublished;
+        return {
+          ...prev,
+          poll: { ...prev.poll, isPublished: nextPublished },
+          analytics: nextAnalytics,
+          showResults: nextPublished ? true : prev.showResults,
+        };
+      });
+    });
+
+    return () => {
+      socket.emit("poll:leave", slug);
+      socket.off("analytics:update");
+      socket.disconnect();
+    };
+  }, [slug]);
 
   const validateRequiredAnswers = () => {
     if (!payload?.poll) return "";

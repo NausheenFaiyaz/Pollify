@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { getToken, startOidcLogin } from "../auth/oidc";
+import { startOidcLogin } from "../auth/oidc";
+import { useAuthToken } from "../auth/useAuthToken";
 
 export default function HomePage() {
-  const token = getToken();
+  const token = useAuthToken();
 
   return (
     <section className="stack landingPage">

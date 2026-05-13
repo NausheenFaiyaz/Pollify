@@ -1,8 +1,13 @@
 import { AxiosError } from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { FaCalendarAlt, FaCheckCircle, FaListAlt, FaPlus, FaQuestionCircle, FaSlidersH, FaTags } from "react-icons/fa";
-import { useFieldArray, useForm, type Control, type UseFormRegister } from "react-hook-form";
+import { FaPlus } from "react-icons/fa";
+import {
+  useFieldArray,
+  useForm,
+  type Control,
+  type UseFormRegister,
+} from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api from "../api/client";
@@ -10,7 +15,10 @@ import api from "../api/client";
 const questionSchema = z.object({
   prompt: z.string().min(3, "Question must be at least 3 characters"),
   required: z.boolean(),
-  options: z.array(z.object({ label: z.string().min(1, "Option is required") })).min(2).max(10),
+  options: z
+    .array(z.object({ label: z.string().min(1, "Option is required") }))
+    .min(2)
+    .max(10),
 });
 
 const schema = z.object({
@@ -24,7 +32,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const getApiError = (err: unknown) => {
-  if (err instanceof AxiosError) return (err.response?.data as { message?: string })?.message ?? err.message;
+  if (err instanceof AxiosError)
+    return (err.response?.data as { message?: string })?.message ?? err.message;
   return "Failed to create poll";
 };
 
@@ -39,35 +48,62 @@ function QuestionBlock({
   register: UseFormRegister<FormData>;
   removeQuestion: (index: number) => void;
 }) {
-  const options = useFieldArray({ control, name: `questions.${index}.options` });
+  const options = useFieldArray({
+    control,
+    name: `questions.${index}.options`,
+  });
 
   return (
     <article className="pollSection questionBox">
       <div className="sectionHeadRow">
-        <h3><FaQuestionCircle /> Question {index + 1}</h3>
-        <button type="button" className="danger ghost" onClick={() => removeQuestion(index)}>Remove</button>
+        <h3>Question {index + 1}</h3>
+        <button
+          type="button"
+          className="danger ghost"
+          onClick={() => removeQuestion(index)}
+        >
+          Remove
+        </button>
       </div>
 
-      <input placeholder="Enter your question" {...register(`questions.${index}.prompt`)} />
+      <input
+        placeholder="Enter your question"
+        {...register(`questions.${index}.prompt`)}
+      />
 
       <label className="optionRow checkboxRow">
         <input type="checkbox" {...register(`questions.${index}.required`)} />
-        <FaCheckCircle /> Required
+        Required
       </label>
 
       <div className="stack">
         {options.fields.map((optionField, optionIndex) => (
           <div key={optionField.id} className="optionInputRow">
-            <input placeholder={`Option ${optionIndex + 1}`} {...register(`questions.${index}.options.${optionIndex}.label`)} />
+            <input
+              placeholder={`Option ${optionIndex + 1}`}
+              {...register(`questions.${index}.options.${optionIndex}.label`)}
+            />
             {options.fields.length > 2 && (
-              <button type="button" className="danger ghost" onClick={() => options.remove(optionIndex)}>Remove</button>
+              <button
+                type="button"
+                className="danger ghost"
+                onClick={() => options.remove(optionIndex)}
+              >
+                Remove
+              </button>
             )}
           </div>
         ))}
       </div>
 
       {options.fields.length < 10 && (
-        <button type="button" className="ghost" onClick={() => options.append({ label: "" })}><FaPlus /> Add option</button>
+        <button
+          type="button"
+          className="ghost"
+          onClick={() => options.append({ label: "" })}
+        >
+          <FaPlus /> Add option
+        </button>
       )}
     </article>
   );
@@ -77,14 +113,22 @@ export default function CreatePollPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const { control, register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+  const {
+    control,
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: "",
       description: "",
       responseMode: "both",
       expiresAt: "",
-      questions: [{ prompt: "", required: true, options: [{ label: "" }, { label: "" }] }],
+      questions: [
+        { prompt: "", required: true, options: [{ label: "" }, { label: "" }] },
+      ],
     },
   });
 
@@ -94,7 +138,10 @@ export default function CreatePollPage() {
     try {
       setSaving(true);
       setError("");
-      await api.post("/polls", { ...values, expiresAt: new Date(values.expiresAt).toISOString() });
+      await api.post("/polls", {
+        ...values,
+        expiresAt: new Date(values.expiresAt).toISOString(),
+      });
       toast.success("Poll created successfully");
       setTimeout(() => {
         window.location.href = "/dashboard";
@@ -114,15 +161,17 @@ export default function CreatePollPage() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="stack createPollPage">
       <h2 className="createTitle">Create a Poll</h2>
-      <p className="muted">Set up your poll, add questions, and start collecting responses.</p>
+      <p className="muted">
+        Set up your poll, add questions, and start collecting responses.
+      </p>
       {error && <p className="error">{error}</p>}
 
       <section className="pollSection">
-        <h3><FaListAlt /> 1. Basic Information</h3>
+        <h3>1. Basic Information</h3>
         <p className="muted">Give your poll a title and description</p>
 
         <div className="labelRow">
-          <label><FaTags /> Title *</label>
+          <label>Title *</label>
           <span className="muted">{titleLength}/200</span>
         </div>
         <input placeholder="What do you want to ask?" {...register("title")} />
@@ -132,39 +181,71 @@ export default function CreatePollPage() {
           <label>Description</label>
           <span className="muted">{descriptionLength}/1000</span>
         </div>
-        <textarea rows={4} placeholder="Add context for your respondents..." {...register("description")} />
+        <textarea
+          rows={4}
+          placeholder="Add context for your respondents..."
+          {...register("description")}
+        />
       </section>
 
       <section className="pollSection">
-        <h3><FaSlidersH /> 2. Settings</h3>
+        <h3>2. Settings</h3>
         <p className="muted">Configure response mode and expiry</p>
-
-        <label>Response mode</label>
-        <select {...register("responseMode")}>
-          <option value="both">Both anonymous + authenticated</option>
-          <option value="anonymous">Anonymous only</option>
-          <option value="authenticated">Authenticated only</option>
-        </select>
-
-        <label><FaCalendarAlt /> Expiry Date & Time *</label>
-        <input type="datetime-local" {...register("expiresAt")} />
-        {errors.expiresAt && <p className="error">{errors.expiresAt.message}</p>}
+        <div className="setting-wrapper">
+          <div className="wrapper">
+            <div className="labelRow">
+              <label>Response mode</label>
+            </div>
+            <select {...register("responseMode")}>
+              <option value="both">Both anonymous + authenticated</option>
+              <option value="anonymous">Anonymous only</option>
+              <option value="authenticated">Authenticated only</option>
+            </select>
+          </div>
+          <div className="wrapper">
+            <div className="labelRow">
+              <label>Expiry Date & Time *</label>
+            </div>
+            <input type="datetime-local" {...register("expiresAt")} />
+            {errors.expiresAt && (
+              <p className="error">{errors.expiresAt.message}</p>
+            )}
+          </div>
+        </div>
       </section>
 
       <section className="pollSection">
         <div className="sectionHeadRow">
           <div>
-            <h3><FaQuestionCircle /> 3. Questions</h3>
-            <p className="muted">Single-choice questions with customizable options</p>
+            <h3>3. Questions</h3>
+            <p className="muted">
+              Single-choice questions with customizable options
+            </p>
           </div>
-          <button type="button" className="ghost" onClick={() => questions.append({ prompt: "", required: true, options: [{ label: "" }, { label: "" }] })}>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() =>
+              questions.append({
+                prompt: "",
+                required: true,
+                options: [{ label: "" }, { label: "" }],
+              })
+            }
+          >
             <FaPlus /> Add Question
           </button>
         </div>
 
         <div className="stack">
           {questions.fields.map((field, index) => (
-            <QuestionBlock key={field.id} index={index} control={control} register={register} removeQuestion={questions.remove} />
+            <QuestionBlock
+              key={field.id}
+              index={index}
+              control={control}
+              register={register}
+              removeQuestion={questions.remove}
+            />
           ))}
         </div>
       </section>

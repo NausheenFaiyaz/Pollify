@@ -10,6 +10,12 @@ type SortKey = "newest" | "oldest" | "expiring_soon";
 
 const isExpired = (poll: Poll) => new Date(poll.expiresAt).getTime() < Date.now();
 
+const truncateWords = (value: string, maxWords: number) => {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return value;
+  return `${words.slice(0, maxWords).join(" ")}...`;
+};
+
 export default function DashboardPage() {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [tab, setTab] = useState<TabKey>("all");
@@ -73,8 +79,8 @@ export default function DashboardPage() {
         {filtered.map((p) => (
           <article key={p._id} className="card pollCard">
             <p className="kicker">/{p.slug}</p>
-            <h3>{p.title}</h3>
-            <p className="muted">{p.description || "No description"}</p>
+            <h3 title={p.title}>{truncateWords(p.title, 5)}</h3>
+            <p className="muted" title={p.description || "No description"}>{truncateWords(p.description || "No description", 10)}</p>
             <div className="pillRow">
               <span className="pill"><FaFilter /> {p.responseMode}</span>
               <span className="pill"><FaClock /> {isExpired(p) ? "Expired" : "Live"}</span>
