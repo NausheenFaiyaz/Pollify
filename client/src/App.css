@@ -235,6 +235,17 @@ a {
   font-size: 1.3rem;
 }
 
+.setting-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 20px;
+}
+
+.wrapper {
+  width: 100%;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -313,6 +324,12 @@ a {
   justify-content: space-between;
   gap: 8px;
 }
+
+label {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-block: 10px;
+}
 .muted {
   color: var(--muted);
   margin: 0;
@@ -363,10 +380,11 @@ a {
   font-size: 1.5rem;
 }
 .primaryAction {
-  width: 100%;
+  width: fit-content;
   font-size: 1.05rem;
-  padding: 14px;
+  padding: 15px 25px;
   border-radius: 999px;
+  margin: 0 10px 0 auto;
 }
 
 input,
@@ -387,6 +405,7 @@ input[type="checkbox"] {
 }
 button {
   width: auto;
+  margin-block: 10px;
 }
 button:disabled {
   opacity: 0.6;
@@ -414,13 +433,13 @@ fieldset {
   gap: 12px;
 }
 .statCard {
-display: flex;
-align-items: center;
-justify-content: center;
-flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
-.statCard p{
+.statCard p {
   font-size: 1.4rem;
   font-weight: 800;
   margin: 10px;
@@ -497,14 +516,42 @@ flex-direction: column;
   clip: rect(0, 0, 0, 0);
 }
 
+.authGateCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+}
+.authGateTitle {
+  margin: 0 0 8px;
+  font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+  letter-spacing: 0.02em;
+  font-weight: 900;
+}
+.authGateBtn {
+  min-width: 130px;
+  margin: 0;
+}
+
 @media (max-width: 900px) {
   .heroGrid {
     grid-template-columns: 1fr;
   }
+
+  .setting-wrapper {
+    flex-direction: column;
+    gap: 0;
+  }
+
   .landingCta {
     align-items: flex-start;
   }
   .resultRow {
     grid-template-columns: 1fr;
+  }
+  .authGateCard {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
