@@ -31,7 +31,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 200 }));
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "poll-shinobi" });
+  res.json({ ok: true, service: "Pollify" });
 });
 
 app.use("/api/auth", authRoutes);
