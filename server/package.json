@@ -1,5 +1,5 @@
 {
-  "name": "poll-shinobi-server",
+  "name": "pollify-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
