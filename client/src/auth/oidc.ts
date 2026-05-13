@@ -1,10 +1,60 @@
 const PKCE_VERIFIER_KEY = "ps_pkce_verifier";
 const PKCE_STATE_KEY = "ps_pkce_state";
 const POST_LOGIN_PATH_KEY = "ps_post_login_path";
+const TOKEN_KEY = "ps_token";
+const AUTH_CHANGED_EVENT = "ps:auth-changed";
 
-export const getToken = () => localStorage.getItem("ps_token");
-export const setToken = (token: string) => localStorage.setItem("ps_token", token);
-export const clearToken = () => localStorage.removeItem("ps_token");
+const parseJwtExp = (token: string) => {
+  try {
+    const [, payloadBase64] = token.split(".");
+    if (!payloadBase64) return null;
+    const normalized = payloadBase64.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "="));
+    const payload = JSON.parse(json) as { exp?: number };
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+};
+
+const emitAuthChanged = () => {
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+};
+
+export const getToken = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+
+  const exp = parseJwtExp(token);
+  if (exp && Date.now() >= exp * 1000) {
+    clearToken();
+    return null;
+  }
+
+  return token;
+};
+
+export const setToken = (token: string) => {
+  localStorage.setItem(TOKEN_KEY, token);
+  emitAuthChanged();
+};
+
+export const clearToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  emitAuthChanged();
+};
+
+export const subscribeAuthChange = (listener: () => void) => {
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === TOKEN_KEY) listener();
+  };
+  window.addEventListener(AUTH_CHANGED_EVENT, listener);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener(AUTH_CHANGED_EVENT, listener);
+    window.removeEventListener("storage", onStorage);
+  };
+};
 
 const issuer = import.meta.env.VITE_OIDC_ISSUER as string;
 const clientId = import.meta.env.VITE_OIDC_CLIENT_ID as string;
