@@ -32,6 +32,20 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const QUICK_EXPIRY_OPTIONS = [
+  { label: "5 min", minutes: 5 },
+  { label: "15 min", minutes: 15 },
+  { label: "30 min", minutes: 30 },
+  { label: "1 hr", minutes: 60 },
+  { label: "1 day", minutes: 24 * 60 },
+  { label: "7 days", minutes: 7 * 24 * 60 },
+] as const;
+
+const toDateTimeLocalValue = (date: Date) => {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+};
+
 const getApiError = (err: unknown) => {
   if (err instanceof AxiosError)
     return (err.response?.data as { message?: string })?.message ?? err.message;
@@ -55,7 +69,7 @@ function QuestionBlock({
   });
 
   return (
-    <article className="pollSection questionBox">
+    <article className="pollSection questionBox motionItem">
       <div className="sectionHeadRow">
         <h3>Question {index + 1}</h3>
         <button
@@ -79,7 +93,7 @@ function QuestionBlock({
 
       <div className="stack">
         {options.fields.map((optionField, optionIndex) => (
-          <div key={optionField.id} className="optionInputRow">
+          <div key={optionField.id} className="optionInputRow motionItem">
             <input
               placeholder={`Option ${optionIndex + 1}`}
               {...register(`questions.${index}.options.${optionIndex}.label`)}
@@ -113,11 +127,13 @@ function QuestionBlock({
 export default function CreatePollPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [activeExpiryPill, setActiveExpiryPill] = useState<string | null>(null);
 
   const {
     control,
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors },
   } = useForm<FormData>({
@@ -158,6 +174,15 @@ export default function CreatePollPage() {
 
   const titleLength = watch("title")?.length ?? 0;
   const descriptionLength = watch("description")?.length ?? 0;
+  const applyQuickExpiry = (minutesFromNow: number) => {
+    const expiresAt = new Date(Date.now() + minutesFromNow * 60 * 1000);
+    setValue("expiresAt", toDateTimeLocalValue(expiresAt), {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    setActiveExpiryPill(String(minutesFromNow));
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="stack createPollPage">
@@ -169,7 +194,7 @@ export default function CreatePollPage() {
       </div>
       {error && <p className="error">{error}</p>}
 
-      <section className="pollSection">
+      <section className="pollSection motionItem">
         <h3>1. Basic Information</h3>
         <p className="muted">Give your poll a title and description</p>
 
@@ -191,7 +216,7 @@ export default function CreatePollPage() {
         />
       </section>
 
-      <section className="pollSection">
+      <section className="pollSection motionItem">
         <h3>2. Settings</h3>
         <p className="muted">Configure response mode and expiry</p>
         <div className="setting-wrapper">
@@ -209,7 +234,27 @@ export default function CreatePollPage() {
             <div className="labelRow">
               <label>Expiry Date & Time *</label>
             </div>
-            <input type="datetime-local" {...register("expiresAt")} />
+            <div className="expiryPillRow">
+              {QUICK_EXPIRY_OPTIONS.map((option) => {
+                const isActive = activeExpiryPill === String(option.minutes);
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    className={`pillBtn ${isActive ? "active" : ""}`}
+                    onClick={() => applyQuickExpiry(option.minutes)}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <input
+              type="datetime-local"
+              {...register("expiresAt", {
+                onChange: () => setActiveExpiryPill(null),
+              })}
+            />
             {errors.expiresAt && (
               <p className="error">{errors.expiresAt.message}</p>
             )}
@@ -217,7 +262,7 @@ export default function CreatePollPage() {
         </div>
       </section>
 
-      <section className="pollSection">
+      <section className="pollSection motionItem">
         <div className="sectionHeadRow">
           <div>
             <h3>3. Questions</h3>
@@ -240,7 +285,7 @@ export default function CreatePollPage() {
           </button>
         </div>
 
-        <div className="stack">
+        <div className="stack motionList">
           {questions.fields.map((field, index) => (
             <QuestionBlock
               key={field.id}
