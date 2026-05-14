@@ -62,10 +62,10 @@ a {
 }
 .topnav {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   align-items: center;
-  justify-content:space-between;
-  width: 30%;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .menuToggle {
@@ -86,7 +86,7 @@ a {
   display: none;
 }
 .navAuthBtn {
-  margin-left: auto;
+  margin: 0 0 0 6px;
 }
 .topnav a {
   text-decoration: none;
@@ -739,23 +739,25 @@ fieldset {
 @media (max-width: 900px) {
   .topbar {
     position: relative;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
   }
   .menuToggle {
     display: inline-flex;
   }
-  .topbar > .btn {
-    display: none;
-  }
   .topnav {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 8px);
     left: 0;
     right: 0;
+    width: 100%;
     display: none;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
-    padding: 12px;
+    gap: 6px;
+    padding: 12px 12px 10px;
     border: 2px solid var(--line);
     border-radius: 14px;
     background: rgba(247, 246, 241, 0.98);
@@ -767,15 +769,19 @@ fieldset {
     animation: itemIn 180ms ease;
   }
   .topnav a {
-    padding: 10px 12px;
+    display: block;
+    padding: 11px 12px;
+    width: 100%;
+    border: 1.5px solid transparent;
+    border-radius: 10px;
   }
   .mobileMenuAuthBtn {
     display: inline-flex;
     width: 100%;
-    margin: 4px 0 0;
+    margin: 6px 0 0;
   }
   .navAuthBtn {
-    margin-left: 0;
+    margin: 6px 0 0;
   }
 
   .heroGrid {

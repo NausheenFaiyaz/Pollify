@@ -32,22 +32,20 @@ export default function Navbar() {
         {menuOpen ? <FaTimes /> : <FaBars />}
       </button>
       <nav className={`topnav ${menuOpen ? "open" : ""}`}>
-        <div>
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) => (isActive ? "active" : "")}
-            onClick={() => setMenuOpen(false)}
-          >
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/poll/create"
-            className={({ isActive }) => (isActive ? "active" : "")}
-            onClick={() => setMenuOpen(false)}
-          >
-            Create Poll
-          </NavLink>
-        </div>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) => (isActive ? "active" : "")}
+          onClick={() => setMenuOpen(false)}
+        >
+          Dashboard
+        </NavLink>
+        <NavLink
+          to="/poll/create"
+          className={({ isActive }) => (isActive ? "active" : "")}
+          onClick={() => setMenuOpen(false)}
+        >
+          Create Poll
+        </NavLink>
         {token ? (
           <button
             className="btn btn-outline navAuthBtn mobileMenuAuthBtn"
