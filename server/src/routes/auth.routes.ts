@@ -8,6 +8,15 @@ import { User } from "../models/User.js";
 
 const router = Router();
 const REFRESH_COOKIE_NAME = "ps_refresh_token";
+const pickTokenValue = (payload: Record<string, unknown>, keys: string[]) => {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === "string" && value.length > 0) {
+      return value;
+    }
+  }
+  return null;
+};
 
 const refreshCookieOptions = (): CookieOptions => {
   const clientOrigins = process.env.CLIENT_URL?.split(",").map((x) => x.trim()).filter(Boolean) ?? [];
@@ -61,8 +70,8 @@ router.post(
     }
 
     const tokenPayload = (await tokenResponse.json()) as Record<string, unknown>;
-    const refreshToken = typeof tokenPayload.refreshToken === "string" ? tokenPayload.refreshToken : null;
-    const accessToken = typeof tokenPayload.accessToken === "string" ? tokenPayload.accessToken : null;
+    const refreshToken = pickTokenValue(tokenPayload, ["refreshToken", "refresh_token"]);
+    const accessToken = pickTokenValue(tokenPayload, ["accessToken", "access_token"]);
 
     if (!accessToken || !refreshToken) {
       throw ApiError.unauthorized("OIDC response did not return required tokens");
@@ -112,8 +121,8 @@ router.post(
     }
 
     const tokenPayload = (await tokenResponse.json()) as Record<string, unknown>;
-    const nextRefreshToken = typeof tokenPayload.refreshToken === "string" ? tokenPayload.refreshToken : null;
-    const nextAccessToken = typeof tokenPayload.accessToken === "string" ? tokenPayload.accessToken : null;
+    const nextRefreshToken = pickTokenValue(tokenPayload, ["refreshToken", "refresh_token"]);
+    const nextAccessToken = pickTokenValue(tokenPayload, ["accessToken", "access_token"]);
 
     if (!nextAccessToken || !nextRefreshToken) {
       res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions());
