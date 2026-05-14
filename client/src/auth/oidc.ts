@@ -24,14 +24,13 @@ const emitAuthChanged = () => {
 export const getToken = () => {
   const token = localStorage.getItem(TOKEN_KEY);
   if (!token) return null;
-
-  const exp = parseJwtExp(token);
-  if (exp && Date.now() >= exp * 1000) {
-    clearToken();
-    return null;
-  }
-
   return token;
+};
+
+export const isTokenExpired = (token: string) => {
+  const exp = parseJwtExp(token);
+  if (!exp) return false;
+  return Date.now() >= exp * 1000;
 };
 
 export const setToken = (token: string) => {
@@ -77,14 +76,17 @@ const createCodeChallenge = async (verifier: string) => {
   return base64Url(digest);
 };
 
-export const startOidcLogin = async (returnTo = "/dashboard") => {
+export const startOidcLogin = async (returnTo?: string) => {
   const codeVerifier = randomString(64);
   const codeChallenge = await createCodeChallenge(codeVerifier);
   const state = crypto.randomUUID();
+  const resolvedReturnTo =
+    returnTo ??
+    `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
   localStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
   localStorage.setItem(PKCE_STATE_KEY, state);
-  localStorage.setItem(POST_LOGIN_PATH_KEY, returnTo);
+  localStorage.setItem(POST_LOGIN_PATH_KEY, resolvedReturnTo);
 
   const authUrl = new URL(`${issuer.replace(/\/$/, "")}/user/login`);
   authUrl.searchParams.set("client_id", clientId);

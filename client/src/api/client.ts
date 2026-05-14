@@ -21,7 +21,7 @@ const refreshAccessToken = async () => {
     refreshPromise = api
       .post("/auth/refresh")
       .then((res) => {
-        const nextAccessToken = res.data?.data?.accessToken as string | undefined;
+        const nextAccessToken = (res.data?.data?.accessToken ?? res.data?.data?.access_token) as string | undefined;
         if (!nextAccessToken) return null;
         setToken(nextAccessToken);
         return nextAccessToken;
@@ -37,6 +37,8 @@ const refreshAccessToken = async () => {
 
   return refreshPromise;
 };
+
+export const tryRefreshAccessToken = async () => refreshAccessToken();
 
 api.interceptors.response.use(
   (response) => response,
