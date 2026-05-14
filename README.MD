@@ -2,6 +2,11 @@
 
 Pollify is a full-stack polling platform where creators can build polls, collect responses, and view analytics in real time.
 
+## Live Demo
+
+- Deployed App: https://lets-pollify.vercel.app/
+- YouTube Demo: https://www.youtube.com/watch?v=6F8q_JEHs3I
+
 It supports:
 - Anonymous polls
 - Authenticated polls
