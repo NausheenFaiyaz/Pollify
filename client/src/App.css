@@ -64,6 +64,29 @@ a {
   display: flex;
   gap: 14px;
   align-items: center;
+  justify-content:space-between;
+  width: 30%;
+}
+
+.menuToggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+  border: 2px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+.mobileMenuAuthBtn {
+  display: none;
+}
+.navAuthBtn {
+  margin-left: auto;
 }
 .topnav a {
   text-decoration: none;
@@ -96,7 +119,7 @@ a {
   transform: translateY(-2px);
 }
 .btn-outline {
-  background: var(--paper);
+  background: var(--sky);
   color: var(--ink);
 }
 
@@ -126,7 +149,7 @@ a {
   box-shadow: 9px 9px 0 #2f3238;
   background-color: var(--mint);
 }
-.poll-head h2{
+.poll-head h2 {
   font-size: 1.5em;
   margin: 0;
 }
@@ -256,7 +279,7 @@ a {
 
 .setting-wrapper {
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: space-evenly;
   gap: 20px;
 }
@@ -346,6 +369,51 @@ a {
 .sortSelect select {
   width: auto;
   min-width: 170px;
+}
+.expiryPillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+.pillBtn {
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: #ffffff;
+  color: var(--ink);
+  font-weight: 700;
+  transition:
+    transform 0.16s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.expiryPillRow .pillBtn:nth-child(1) {
+  background: var(--pink);
+}
+.expiryPillRow .pillBtn:nth-child(2) {
+  background: var(--mint);
+}
+.expiryPillRow .pillBtn:nth-child(3) {
+  background: var(--sky);
+}
+.expiryPillRow .pillBtn:nth-child(4) {
+  background: var(--pink);
+}
+.expiryPillRow .pillBtn:nth-child(5) {
+  background: var(--mint);
+}
+.expiryPillRow .pillBtn:nth-child(6) {
+  background: var(--sky);
+}
+
+.pillBtn:hover {
+  transform: translateY(-1px);
+}
+.expiryPillRow .pillBtn.active {
+  background: #111827;
+  color: #f9fafb;
 }
 
 .optionRow {
@@ -581,7 +649,135 @@ fieldset {
   margin: 0;
 }
 
+/* Motion System */
+.pageTransition {
+  animation: pageIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: 50% 0;
+}
+
+.motionList > * {
+  animation: itemIn 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.motionItem {
+  animation: itemIn 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+.pollSection,
+.card,
+.featureCard,
+.hero,
+.poll-head {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease,
+    opacity 220ms ease;
+}
+
+.pollSection:hover,
+.card:hover,
+.featureCard:hover {
+  transform: translateY(-2px);
+}
+
+.optionInputRow,
+.questionBox,
+.quizOption,
+.resultRow,
+.statCard {
+  transition:
+    transform 200ms ease,
+    opacity 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageTransition,
+  .motionList > *,
+  .motionItem {
+    animation: none !important;
+  }
+
+  .pollSection,
+  .card,
+  .featureCard,
+  .hero,
+  .poll-head,
+  .optionInputRow,
+  .questionBox,
+  .quizOption,
+  .resultRow,
+  .statCard {
+    transition: none !important;
+  }
+}
+
 @media (max-width: 900px) {
+  .topbar {
+    position: relative;
+  }
+  .menuToggle {
+    display: inline-flex;
+  }
+  .topbar > .btn {
+    display: none;
+  }
+  .topnav {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    background: rgba(247, 246, 241, 0.98);
+    box-shadow: 6px 6px 0 #2f3238;
+    z-index: 30;
+  }
+  .topnav.open {
+    display: flex;
+    animation: itemIn 180ms ease;
+  }
+  .topnav a {
+    padding: 10px 12px;
+  }
+  .mobileMenuAuthBtn {
+    display: inline-flex;
+    width: 100%;
+    margin: 4px 0 0;
+  }
+  .navAuthBtn {
+    margin-left: 0;
+  }
+
   .heroGrid {
     grid-template-columns: 1fr;
   }
