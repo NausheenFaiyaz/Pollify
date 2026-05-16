@@ -16,7 +16,7 @@ It supports:
 
 ## Custom OIDC Authentication
 
-Pollify uses a custom OpenID Connect-compatible auth provider:
+Pollify uses my own custom OpenID Connect-compatible auth provider:
 
 - **TokenShinobi OIDC Service**: `https://token-shinobi.onrender.com/`
 
@@ -65,7 +65,7 @@ Pollify uses Authorization Code + PKCE on the client side, then exchanges code o
 - If poll is expired and user is creator, creator can still view results.
 
 ## 5. Authentication and Session Management
-- Login through TokenShinobi OIDC.
+- Login through my own TokenShinobi OIDC service.
 - Authorization Code exchange done server-side (`/api/auth/oidc/exchange`).
 - Access token used in `Authorization: Bearer ...`.
 - Refresh token stored in HTTP-only cookie (`ps_refresh_token`) scoped to `/api/auth`.
@@ -230,5 +230,5 @@ Client runs on `http://localhost:5173` by default.
 
 ---
 
-Built with care using a custom OIDC stack powered by **TokenShinobi**:  
+Built with care using my own custom OIDC stack powered by **TokenShinobi**:  
 `https://token-shinobi.onrender.com/`
